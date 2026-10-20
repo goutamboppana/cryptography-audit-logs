@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101e32">
+  <title>Cryptography Audit Logs</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Cryptography Audit Logs home">
+      <span class="brand-mark" aria-hidden="true">⌁</span>
+      <span><strong>VERITY</strong><small>ACADEMIC SECURITY LAB</small></span>
+    </a>
+    <div class="top-meta"><span class="live-dot"></span> LOCAL DEMONSTRATION <span class="top-divider"></span> SHA-256 · HMAC</div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">STUDENT RECORDS · INTEGRITY MONITOR</p>
+        <h1>Every change leaves<br><em>a verifiable trace.</em></h1>
+        <p class="hero-copy">A student marks register with a cryptographically linked audit trail. Review the records, inspect each event, and verify the chain at any time.</p>
+      </div>
+      <div class="hero-badge"><span class="badge-icon">◈</span><div><strong>SHA-256 chain + HMAC</strong><small>Integrity checks and trusted checkpoints</small></div></div>
+    </section>
+
+    <section class="status-row" aria-label="Integrity status">
+      <div class="status-card"><span class="status-label">OVERALL INTEGRITY</span><div id="integrity-state" class="status-value pending"><span class="state-icon">◌</span><span>Not checked</span></div></div>
+      <div class="status-card"><span class="status-label">AUDIT ENTRIES</span><div id="entry-count" class="status-value">—</div></div>
+      <div class="status-card"><span class="status-label">LAST VERIFICATION</span><div id="verified-at" class="status-value subdued">Not verified</div></div>
+      <button id="verify-button" class="button button-dark" disabled><span>⟳</span> Verify integrity</button>
+    </section>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <section id="verification-panel" class="panel verification-panel" aria-live="polite" hidden>
+      <div class="verification-heading"><div><p class="eyebrow">VERIFICATION REPORT</p><h2 id="verification-title">Integrity result</h2></div><span id="verification-badge" class="result-badge">Not checked</span></div>
+      <p id="verification-explanation" class="verification-explanation"></p>
+      <div class="verification-metrics">
+        <span>Hash + HMAC <strong id="chain-status">—</strong></span>
+        <span>Last valid sequence <strong id="last-valid-sequence">—</strong></span>
+        <span>Verified prefix <strong id="verified-prefix">—</strong></span>
+        <span>Trusted checkpoint <strong id="checkpoint-status">—</strong></span>
+        <span>Truncation protection <strong id="truncation-protection">—</strong></span>
+      </div>
+      <button id="download-report-button" class="button button-outline" type="button" disabled>Download Verification Report</button>
+      <div id="verification-issues" class="verification-issues" hidden></div>
+    </section>
+
+    <section class="workspace-grid">
+      <div class="panel students-panel">
+        <div class="panel-heading"><div><p class="eyebrow">REGISTER</p><h2>Student records</h2></div><span id="student-count" class="count-pill">0 records</span></div>
+        <form id="student-form" class="add-form">
+          <label>Student name<input name="name" placeholder="e.g. Asha Rao" maxlength="100" required></label>
+          <label>Student ID<input name="student_number" placeholder="e.g. CS-2026-014" maxlength="40" required></label>
+          <label class="marks-field">Marks<input name="marks" type="number" min="0" max="100" value="85" required></label>
+          <button class="button button-accent" type="submit">＋ Add student</button>
+        </form>
+        <div class="table-wrap"><table class="students-table"><thead><tr><th>STUDENT</th><th>STUDENT ID</th><th>MARKS</th><th>UPDATE MARKS</th></tr></thead><tbody id="students-body"><tr><td colspan="4" class="empty-cell">Loading student records…</td></tr></tbody></table></div>
+        <div id="records-empty" class="empty-hint" hidden><span>＋</span><strong>Your register is ready</strong><small>Add a student above to record your first event.</small></div>
+      </div>
+
+      <aside class="side-column">
+        <div class="panel explainer-panel">
+          <p class="eyebrow">HOW IT WORKS</p><h2>One event.<br>Three checks.</h2>
+          <div class="step"><span class="step-number">01</span><div><strong>Canonical event</strong><p>Each change is serialized consistently with its actor, timestamp, record, and before/after values.</p></div></div>
+          <div class="step"><span class="step-number">02</span><div><strong>Linked digest</strong><p>SHA-256 binds the event to the previous entry, forming a sequence that reveals edits and broken links.</p></div></div>
+          <div class="step"><span class="step-number">03</span><div><strong>Keyed proof</strong><p>HMAC-SHA-256 authenticates each digest with a secret key stored outside the database.</p></div></div>
+          <div class="callout"><span>ⓘ</span><p>Hashes provide integrity checks, not encryption. A trusted checkpoint is needed to detect removal of the newest entries.</p></div>
+        </div>
+        <div id="demo-panel" class="panel demo-panel" hidden>
+          <div class="demo-heading"><span class="demo-icon">⚑</span><div><p class="eyebrow">DEVELOPMENT ONLY</p><h3>Tamper demonstration</h3></div></div>
+          <p>Deliberately change an audit event value to demonstrate an integrity failure. This action cannot be undone.</p>
+          <form id="tamper-form"><label>Audit entry<select name="sequence" id="tamper-sequence" required></select></label><button class="button button-danger" type="submit">Modify entry for demo</button></form>
+          <small class="demo-footnote">Enabled only when AUDIT_DEMO_TAMPERING=true and accessed over localhost.</small>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel audit-panel">
+      <div class="panel-heading audit-heading"><div><p class="eyebrow">RECORDED HISTORY</p><h2>Audit trail</h2><p class="section-caption">Each entry records who changed what, when, and how its integrity is linked. Filters change the visible rows only; integrity verification checks the full history.</p></div><span class="chain-label"><span class="chain-dot"></span> HASH CHAIN</span></div>
+      <form id="audit-filter-form" class="audit-filters">
+        <label>Action<select name="action"><option value="">All actions</option><option value="student_created">Student created</option><option value="marks_updated">Marks updated</option></select></label>
+        <label>Actor<input name="actor" type="search" maxlength="80" placeholder="Exact actor"></label>
+        <label>Event ID<input name="event_id" inputmode="text" placeholder="audit-12"></label>
+        <label>Record ID<input name="record_id" type="number" min="1" placeholder="Any record"></label>
+        <label>Sequence from<input name="sequence_from" type="number" min="1" placeholder="1"></label>
+        <label>Sequence to<input name="sequence_to" type="number" min="1" placeholder="Any"></label>
+        <label>From<input name="start_at" type="datetime-local"></label>
+        <label>To<input name="end_at" type="datetime-local"></label>
+        <div class="audit-filter-actions"><button class="button button-dark" type="submit">Search</button><button id="audit-clear" class="button button-quiet" type="button">Clear</button></div>
+      </form>
+      <div class="audit-results-bar"><span id="audit-result-count" aria-live="polite">Loading matching events…</span><div class="audit-pagination"><button id="audit-prev" class="button button-quiet" type="button" disabled>Previous</button><span id="audit-page-label">Page 1</span><button id="audit-next" class="button button-quiet" type="button" disabled>Next</button></div></div>
+      <div class="table-wrap"><table><thead><tr><th>EVENT ID</th><th>SEQ.</th><th>TIME</th><th>ACTOR</th><th>ACTION</th><th>RECORD / CHANGE</th><th>ENTRY HASH</th></tr></thead><tbody id="audit-body"><tr><td colspan="7" class="empty-cell">Loading audit history…</td></tr></tbody></table></div>
+      <div id="audit-empty" class="empty-hint" hidden><span>⌁</span><strong>No matching audit events</strong><small>Change or clear the filters, or add a student to create an event.</small></div>
+    </section>
+    <dialog id="event-dialog" class="event-dialog" aria-labelledby="event-dialog-title">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">AUDIT EVENT INSPECTION</p><h2 id="event-dialog-title">Event details</h2></div>
+        <button id="event-dialog-close" class="icon-button" type="button" aria-label="Close event details">×</button>
+      </div>
+      <dl class="event-details">
+        <div><dt>Event ID</dt><dd id="detail-event-id"></dd></div>
+        <div><dt>Sequence</dt><dd id="detail-sequence"></dd></div>
+        <div><dt>Timestamp</dt><dd id="detail-timestamp"></dd></div>
+        <div><dt>Actor</dt><dd id="detail-actor"></dd></div>
+        <div><dt>Action</dt><dd id="detail-action"></dd></div>
+        <div><dt>Record ID</dt><dd id="detail-record-id"></dd></div>
+        <div><dt>Before values</dt><dd><code id="detail-before"></code></dd></div>
+        <div><dt>After values</dt><dd><code id="detail-after"></code></dd></div>
+        <div class="detail-digest"><dt>Previous entry hash · SHA-256</dt><dd><code id="detail-previous-hash"></code></dd></div>
+        <div class="detail-digest"><dt>Entry hash · SHA-256</dt><dd><code id="detail-entry-hash"></code></dd></div>
+        <div class="detail-digest"><dt>Entry authenticator · HMAC-SHA-256</dt><dd><code id="detail-hmac"></code></dd></div>
+      </dl>
+      <p class="dialog-note">The HMAC value authenticates this entry hash. The secret key is never sent to the dashboard.</p>
+    </dialog>
+    <footer><span>VERITY · CRYPTOGRAPHY AUDIT LOGS</span><span>Built for academic demonstration <b>·</b> Local data stays on this machine</span></footer>
+  </main>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

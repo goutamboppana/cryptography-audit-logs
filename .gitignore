@@ -1,0 +1,22 @@
+# Local secret material (never commit the HMAC key)
+.secrets/
+*.key
+.env
+.env.*
+!.env.example
+
+# Local application data and test output
+data/
+.demo_runs/
+*.db
+*.sqlite
+*.sqlite3
+.pytest-tmp/
+.pytest-*/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
